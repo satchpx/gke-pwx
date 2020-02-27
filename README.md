@@ -284,6 +284,10 @@ root@postgres-5b6898557d-7tcr8:/# su postgres
 $ psql -a pxdemo -c 'select count(*) from pgbench_accounts;'
 ```
 
+## DR
+
+### Create clusterPair
+
 ## Delete the cluster
 After the experiment is complete, destroy:
 ```

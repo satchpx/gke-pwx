@@ -1,0 +1,31 @@
+apiVersion: stork.libopenstorage.org/v1alpha1
+kind: ClusterPair
+metadata:
+    creationTimestamp: null
+    name: remotecluster
+    namespace: migrationnamespace
+spec:
+   config:
+      clusters:
+         kubernetes:
+            LocationOfOrigin: /etc/kubernetes/admin.conf
+            certificate-authority-data: <CA_DATA>
+            server: https://192.168.56.74:6443
+      contexts:
+         kubernetes-admin@kubernetes:
+            LocationOfOrigin: /etc/kubernetes/admin.conf
+            cluster: kubernetes
+            user: kubernetes-admin
+      current-context: kubernetes-admin@kubernetes
+      preferences: {}
+      users:
+         kubernetes-admin:
+            LocationOfOrigin: /etc/kubernetes/admin.conf
+            client-certificate-data: <CLIENT_CERT_DATA>
+            client-key-data: <CLIENT_KEY_DATA>
+    options:
+       <insert_storage_options_here>: ""
+status:
+  remoteStorageId: ""
+  schedulerStatus: ""
+  storageStatus: ""
