@@ -242,6 +242,48 @@ SOURCEVOLUME						SOURCEVOLUMEID			CLOUD-SNAP-ID					CREATED-TIME				TYPE			STAT
 pvc-7434340e-5932-11ea-892e-42010a8e01ae		924591656571108482		47f6ade9-94a8-4654-aac1-e06bd6f47ce5/924591656571108482-314230151652709092		Thu, 27 Feb 2020 07:54:33 UTC		StorkManual		Done
 ```
 
+### Delete and Verify
+```
+kubectl delete -f postgres-px.yaml
+storageclass.storage.k8s.io "px-postgres-sc" deleted
+persistentvolumeclaim "postgres-data" deleted
+configmap "example-config" deleted
+deployment.extensions "postgres" deleted
+```
+
+```
+kubectl apply -f postgres-from-cloudsnap-3d.yaml
+persistentvolumeclaim/postgres-3d-snapshot-clone created
+configmap/example-config created
+deployment.extensions/postgres created
+```
+
+```
+kubectl get pvc
+NAME                         STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS        AGE
+postgres-3d-snapshot-clone   Pending                                      stork-snapshot-sc   18s
+```
+
+```
+kubectl get pvc
+NAME                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS        AGE
+postgres-3d-snapshot-clone   Bound    pvc-0fa85965-5937-11ea-892e-42010a8e01ae   2Gi        RWO            stork-snapshot-sc   27s
+```
+
+```
+kubectl get pods
+NAME                        READY   STATUS    RESTARTS   AGE
+postgres-5d7c8dcd5b-dc8nq   1/1     Running   0          77s
+```
+
+#### Verify data
+```
+POD=`kubectl get pods -l app=postgres | grep Running | grep 1/1 | awk '{print $1}'`
+kubectl exec -it $POD bash
+root@postgres-5b6898557d-7tcr8:/# su postgres
+$ psql -a pxdemo -c 'select count(*) from pgbench_accounts;'
+```
+
 ## Delete the cluster
 After the experiment is complete, destroy:
 ```
