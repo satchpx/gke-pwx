@@ -154,7 +154,7 @@ postgres-# \l
 
 ```
 
-Create Database
+#### Create Database
 ```
 kubectl exec -it $POD bash
 root@postgres-5b6898557d-7tcr8:/# su postgres
@@ -178,7 +178,7 @@ postgres=# \l
 (4 rows)
 ```
 
-Write some data
+#### Write some data
 ```
 postgres=# \q
 could not save history to file "/home/postgres/.psql_history": No such file or directory
@@ -195,6 +195,52 @@ select count(*) from pgbench_accounts;
 (1 row)
 ```
 
+#### Create object store credentials
+```
+pxctl credentials create --provider s3 \
+--s3-access-key <redacted> \
+--s3-secret-key <redacted> \
+--s3-region us-east-1 \
+--s3-endpoint <redacted> \
+--s3-disable-ssl \
+minio
+```
+
+#### Apply pre-snap rule
+```
+kubectl apply -f postgres-3dsnap-prerule.yaml
+rule.stork.libopenstorage.org/postgres-3dsnap-prerule created
+```
+
+```
+kubectl get rule
+NAME                      AGE
+postgres-3dsnap-prerule   5s
+```
+
+#### Create 3d-cloudsnap
+```
+kubectl apply -f cloudsnap-3d-postgres.yaml
+volumesnapshot.volumesnapshot.external-storage.k8s.io/postgres-3d-cloudsnapshot created
+```
+
+```
+kubectl  get volumesnapshots
+NAME                        AGE
+postgres-3d-cloudsnapshot   9s
+```
+
+```
+pxctl cs status
+NAME					SOURCEVOLUME		STATE		NODE		TIME-ELAPSED	COMPLETED
+63c23c14-5936-11ea-892e-42010a8e01ae	924591656571108482	Backup-Done	10.142.15.204	15.321343646s	Thu, 27 Feb 2020 07:54:49 UTC
+```
+
+```
+pxctl cs list
+SOURCEVOLUME						SOURCEVOLUMEID			CLOUD-SNAP-ID					CREATED-TIME				TYPE			STATUS
+pvc-7434340e-5932-11ea-892e-42010a8e01ae		924591656571108482		47f6ade9-94a8-4654-aac1-e06bd6f47ce5/924591656571108482-314230151652709092		Thu, 27 Feb 2020 07:54:33 UTC		StorkManual		Done
+```
 
 ## Delete the cluster
 After the experiment is complete, destroy:
