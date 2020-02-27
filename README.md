@@ -11,6 +11,7 @@ gcloud container clusters create demo-east \
      --machine-type=n1-standard-4 \
      --num-nodes=1 \
      --image-type ubuntu \
+     --scopes compute-rw,storage-ro \
      --enable-autoscaling --max-nodes=6 --min-nodes=3
 ```
 
@@ -25,10 +26,15 @@ gcloud container clusters create demo-west \
      --machine-type=n1-standard-4 \
      --num-nodes=1 \
      --image-type ubuntu \
+     --scopes compute-rw,storage-ro \
      --enable-autoscaling --max-nodes=6 --min-nodes=3
 ```
 
 ## Install Portworx
+
+```
+gcloud services enable compute.googleapis.com
+```
 
 ### Provide permissions to Portworx
 These next steps grant Kubernetes ClusterRole level permissions to your Gcloud account. These permissions then allow you to install Portworx. 
@@ -43,6 +49,10 @@ Using the output of the above as the ACCOUNT_NAME, run the command below to prov
 kubectl create clusterrolebinding cluster-admin-binding \
             --clusterrole=cluster-admin \
             --user=ACCOUNT_NAME
+```
+
+```
+kubectl apply -f specs/px.yaml
 ```
 
 ## Install Postgres
