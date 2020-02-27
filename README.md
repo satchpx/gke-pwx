@@ -110,7 +110,7 @@ Volume	:  924591656571108482
 		  Controlled by  : postgres-5b6898557d (ReplicaSet)
 ```
 
-## Benchmark
+### Benchmark
 
 ```
 POD=`kubectl get pods -l app=postgres | grep Running | grep 1/1 | awk '{print $1}'`
@@ -131,6 +131,68 @@ root@postgres-95c4d46d5-4sqb9:/# pgbench -i -s 70 postgres & pgbench -c 4 -j 2 -
 Now, run the random write test. 
 ```
 root@postgres-95c4d46d5-4sqb9:/# pgbench -i -s 70 postgres & pgbench -i -s 70 postgres;
+```
+
+### App consistent snapshots
+```
+kubectl exec -it $POD bash
+root@postgres-5b6898557d-7tcr8:/# su postgres
+$ psql
+psql (10.1)
+Type "help" for help.
+
+postgres-# \l
+                                 List of databases
+   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
+-----------+----------+----------+------------+------------+-----------------------
+ postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres
+(3 rows)
+
+```
+
+Create Database
+```
+kubectl exec -it $POD bash
+root@postgres-5b6898557d-7tcr8:/# su postgres
+$ createdb pxdemo
+$
+$
+$ psql
+psql (10.1)
+Type "help" for help.
+
+postgres=# \l
+                                 List of databases
+   Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
+-----------+----------+----------+------------+------------+-----------------------
+ postgres  | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ pxdemo    | postgres | UTF8     | en_US.utf8 | en_US.utf8 |
+ template0 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres
+ template1 | postgres | UTF8     | en_US.utf8 | en_US.utf8 | =c/postgres          +
+           |          |          |            |            | postgres=CTc/postgres
+(4 rows)
+```
+
+Write some data
+```
+postgres=# \q
+could not save history to file "/home/postgres/.psql_history": No such file or directory
+$ pgbench -i -s 50 pxdemo
+```
+
+Verify
+```
+$ psql -a pxdemo -c 'select count(*) from pgbench_accounts;'
+select count(*) from pgbench_accounts;
+  count
+---------
+ 5000000
+(1 row)
 ```
 
 
