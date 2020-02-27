@@ -57,6 +57,10 @@ kubectl apply -f specs/px.yaml
 
 ## Install Postgres
 
+```
+kubectl apply -f specs/postgres-px.yaml
+```
+
 ## Delete the cluster
 After the experiment is complete, destroy:
 ```
